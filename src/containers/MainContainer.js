@@ -30,13 +30,6 @@ class MainContainer extends Component {
     }) : null
   }
 
-
-  // if (this.state.portfolio.includes(stock)) {
-  //   this.setState({
-  //     stocks: [...this.state.stocks, stock]
-  //     portfolio: this.state.portfolio.filter(s => s !== stock),
-  //   })}
-
   render() {
     return (
       <div>
