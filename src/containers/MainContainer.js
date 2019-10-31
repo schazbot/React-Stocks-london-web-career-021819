@@ -2,55 +2,98 @@ import React, { Component } from 'react';
 import StockContainer from './StockContainer'
 import PortfolioContainer from './PortfolioContainer'
 import SearchBar from '../components/SearchBar'
+import API from '../utils/API'
 
 class MainContainer extends Component {
 
   state = {
-    allTheStock: [],
-    portfolio: []
+    allStocks: [],
+    portfolioStocks: [],
+    options: {
+      filter: 'All',
+      sort: 'Default'
+    }
   }
+
+
 
   componentDidMount = () => {
-    fetch("http://localhost:3000/stocks")
-      .then(resp => resp.json())
-      .then(data => this.setState({ allTheStock: data }))
+    API.getStocks().then(stocks => this.setState({ allStocks: stocks }))
   }
 
-  addToPortfolio = (selectedStock) => {
-    this.state.portfolio.includes(selectedStock) ? alert("you bought that one already, don't be greedy") :
-      this.setState({
-        portfolio: [...this.state.portfolio, selectedStock]
-      })
+  filterStocks = () => { }
+
+
+  sortStocks = (stocks, sortType) => {
+    sortType === "Default" ? stocks : stocks.sort((a, b) => {
+      if (sortType === "Alphabetically") return a.name.localeCompare(b.name)
+
+    })
   }
 
-  removeFromPortfolio = (selectedStock) => {
-    this.state.portfolio.includes(selectedStock) ? this.setState({
-      allTheStock: [...this.state.allTheStock, selectedStock],
-      portfolio: this.state.portfolio.filter(stock => stock.id !== selectedStock.id)
-    }) : null
+  changeFilterType = (filterType) => {
+    this.setState({
+      options: {
+        ...this.state.options,
+        filter: filterType
+      }
+    })
   }
+
+  changeSortType = (sortType) => {
+    this.setState({
+      options: {
+        ...this.state.options,
+        sort: sortType
+      }
+    })
+  }
+
+
+  buyStock = (stock) => {
+    this.setState({
+      portfolioStocks: [...this.state.portfolioStocks, stock.id]
+    })
+  }
+
+  removeStock = (stockIndex) => {
+    this.setState({
+      portfolioStocks: this.state.portfolioStocks.filter((stockId, i) => i !== stockIndex)
+    })
+  }
+
+  getPortfolioStocks = () => {
+    return this.state.portfolioStocks.map(stkId =>
+      this.state.allStocks.find(stock => stkId === stock.id))
+  }
+
 
   render() {
+    const portfolio = this.getPortfolioStocks()
+    const sortedStocks = this.sortStocks(this.state.allStocks, this.state.options.sort
+    )
     return (
       <div>
-        <SearchBar />
-
+        <SearchBar
+          sortTypes={["Default", "Alphabetically"]}
+          currentSortType={this.state.options.sort}
+          changeSortType={this.changeSortType}
+        />
         <div className="row">
           <div className="col-8">
-
-            <StockContainer stocks={this.state.allTheStock} handleClick={this.addToPortfolio} />
-
+            <StockContainer
+              allStocks={this.state.allStocks}
+              buyStock={this.buyStock}
+              sortedStocks={sortedStocks} />
           </div>
           <div className="col-4">
-
-            <PortfolioContainer portfolio={this.state.portfolio} handleClick={this.removeFromPortfolio} />
-
+            <PortfolioContainer
+              portfolio={portfolio}
+              removeStock={this.removeStock} />
           </div>
         </div>
       </div>
     );
   }
-
 }
-
 export default MainContainer;
